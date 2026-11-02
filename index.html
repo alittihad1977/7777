@@ -115,7 +115,7 @@ document.addEventListener("click",e=>{let x=e.target.closest("[data-edit]"),d=e.
 $("companyCsv").onclick=()=>exportRecords(companyList(),"company-"+activeCompany+".csv");$("companyPrint").onclick=()=>print();$("allPrint").onclick=()=>print();$("archivePrint").onclick=()=>print();
 $("allCsv").onclick=()=>{let d=$("allDate").value,c=$("allCompany").value;exportRecords(records.filter(r=>(!d||r.date===d)&&(!c||r.company===c)),"all-transfers.csv")};$("archiveCsv").onclick=exportArchive;
 $("addTry").onclick=addTry;$("tryAmount").onkeydown=e=>{if(e.key==="Enter")addTry()};$("tryRate").oninput=renderTry;$("saveBatch").onclick=saveBatch;$("clearTry").onclick=()=>{currentTry=0;$("tryRate").value="";$("tryAmount").value="";renderTry()};
-["amt1","amt2"].forEach(x=>$(x).onkeydown=e=>{if(e.key==="Enter")saveRecord()});$("time").onkeydown=e=>{if(e.key==="Enter")saveRecord()};document.addEventListener("keydown",e=>{if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();saveRecord()}});
+["amt1","amt2"].forEach(x=>$(x).onkeydown=e=>{if(e.key==="Enter")saveRecord()});document.addEventListener("keydown",e=>{if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();saveRecord()}});
 function theme(){let d=localStorage.getItem(TK)==="dark";document.body.classList.toggle("dark",d);$("theme").textContent=d?"☀️ الوضع النهاري":"🌙 الوضع الليلي"}
 $("theme").onclick=()=>{localStorage.setItem(TK,document.body.classList.contains("dark")?"light":"dark");theme()};
 theme();renderAll();
