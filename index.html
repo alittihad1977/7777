@@ -20,7 +20,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:b
 </style></head>
 <body><div class="wrap">
 <header><h1>تجميع حوالات الشركات</h1><button class="gold" id="theme">🌙 الوضع الليلي</button></header>
-<nav class="section-nav" id="sectionNav" aria-label="التنقل بين الأقسام"><button type="button" class="active" data-section="entry">➕ إضافة حركة</button><button type="button" data-section="overall">📊 الملخص العام</button><button type="button" data-section="companyLog">📒 سجل الشركات</button><button type="button" data-section="archiveSection">🗓️ الأرشيف</button><button type="button" data-section="turkishSection">🇹🇷 مشتريات التركي</button><button type="button" data-section="allSection">🧾 جميع الحركات</button></nav>
+<nav class="section-nav" id="sectionNav" aria-label="التنقل بين الأقسام"><button type="button" class="active" data-section="entry">➕ إضافة حركة</button><button type="button" data-section="overall">📊 الملخص العام</button><button type="button" data-section="companyLog">📒 سجل الشركات</button><button type="button" data-section="archiveSection">🗓️ الأرشيف</button><button type="button" data-section="turkishSection">🇹🇷 مشتريات التركي</button><button type="button" data-section="allSection">🧾 جميع الحركات</button><button type="button" data-section="companiesSection">🏢 إدارة الشركات</button></nav>
 
 <section class="card app-section active" id="entry">
 <h2>⚡ إضافة حركة جديدة</h2>
@@ -34,6 +34,8 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:b
 </div><p class="muted">يمكن إدخال مبلغ بعملة واحدة أو مبلغين بعملتين مختلفتين. اضغط Enter للحفظ.</p>
 <div class="actions"><button class="primary" id="save">حفظ الحركة</button><button class="soft" id="clear">تفريغ الخانات</button></div><p class="muted" id="editNote"></p>
 </section>
+
+<section class="card app-section" id="companiesSection"><h2>🏢 إضافة شركة جديدة</h2><p class="muted">أضف اسم الشركة مرة واحدة، وستظهر تلقائياً في اختيار الشركة وسجل الشركات والملخص والأرشيف والتصفية.</p><div class="grid"><div><label for="newCompanyName">اسم الشركة</label><input id="newCompanyName" type="text" maxlength="40" placeholder="اكتب اسم الشركة الجديدة"></div><div style="display:flex;align-items:end"><button type="button" class="primary" id="addCompany">إضافة الشركة</button></div></div><div id="companyManagementList" class="tabs"></div><p class="muted">الشركات التي أضفتها لا تُحذف من هنا حتى لا تضيع سجلاتها القديمة.</p></section>
 
 <section class="card app-section" id="overall"><h2>📊 الملخص العام حسب الشركة والعملة</h2><div id="overallStats" class="stats"></div></section>
 
@@ -62,7 +64,10 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:b
 </div>
 <script>
 "use strict";
-const COMPANIES=["الليث","اونلاين","تواصل","تاج","شمس","العالمية"];
+const DEFAULT_COMPANIES=["الليث","اونلاين","تواصل","تاج","شمس","العالمية"];
+const CK="alittihad_custom_companies_v1";
+function loadCompanies(){try{let saved=JSON.parse(localStorage.getItem(CK)||"[]");return [...new Set([...DEFAULT_COMPANIES,...(Array.isArray(saved)?saved:[])].filter(x=>typeof x==="string"&&x.trim()).map(x=>x.trim()))]}catch{return DEFAULT_COMPANIES.slice()}}
+let COMPANIES=loadCompanies();
 const CURRENCIES=["ليرة سورية","ليرة تركية","دولار أمريكي","يورو"];
 const RK="alittihad_daily_transfers_v1",BK="alittihad_turkish_purchase_batches_v1",TK="alittihad_collection_theme_v1";
 const $=id=>document.getElementById(id);
@@ -74,6 +79,10 @@ const num=n=>Number(n||0).toLocaleString("en-US",{maximumFractionDigits:4});
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 function persist(){localStorage.setItem(RK,JSON.stringify(records));localStorage.setItem(BK,JSON.stringify(batches))}
+function saveCompanies(){localStorage.setItem(CK,JSON.stringify(COMPANIES.filter(c=>!DEFAULT_COMPANIES.includes(c))))}
+function renderCompanyOptions(){let current=$("allCompany").value;$("allCompany").innerHTML='<option value="">كل الشركات</option>'+COMPANIES.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join("");$("allCompany").value=COMPANIES.includes(current)?current:""}
+function renderCompanyManagement(){$("companyManagementList").innerHTML=COMPANIES.map(c=>'<span class="tab" style="padding:8px 12px;display:inline-block">'+esc(c)+'</span>').join("")}
+function addCompany(){let name=$("newCompanyName").value.trim();if(!name){alert("اكتب اسم الشركة أولاً");return}if(COMPANIES.some(c=>c.toLocaleLowerCase()===name.toLocaleLowerCase())){alert("هذه الشركة موجودة بالفعل");return}COMPANIES.push(name);saveCompanies();$("newCompanyName").value="";renderCompanyButtons();renderCompanyOptions();renderCompany();renderAllRows();renderOverall();renderArchive();renderCompanyManagement();alert("تمت إضافة الشركة إلى جميع الأقسام")}
 function clearForm(){editingId=null;$("amt1").value="";$("amt2").value="";$("save").textContent="حفظ الحركة";$("editNote").textContent="";renderCompanyButtons();renderCurrencyButtons();$("amt1").focus()}
 function saveRecord(){
 let company=$("company").value,c1=$("cur1").value,c2=$("cur2").value,a1=Number($("amt1").value),a2=Number($("amt2").value||0),oldRecord=editingId?records.find(r=>r.id===editingId):null,date=oldRecord?.date||today(),time=oldRecord?.time||nowTime();
@@ -106,7 +115,7 @@ function csvCell(v){return '"'+String(v??"").replace(/"/g,'""')+'"'}
 function downloadCSV(name,rows){let blob=new Blob(["\uFEFF"+rows.map(r=>r.map(csvCell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
 function exportRecords(list,name){downloadCSV(name,[["الشركة","التاريخ","الوقت","العملة الأولى","المبلغ الأول","العملة الثانية","المبلغ الثاني"],...list.map(r=>[r.company,r.date,r.time,r.currency1,r.amount1,r.currency2,r.amount2])])}
 function exportArchive(){let d=$("archiveDate").value;if(!d)return;let rows=[["التاريخ","الشركة","العملة","الإجمالي","عدد الحركات"]];COMPANIES.forEach(c=>{let l=records.filter(r=>r.date===d&&r.company===c);if(!l.length)return;let t=totals(l);CURRENCIES.forEach(x=>{if(t[x])rows.push([d,c,x,t[x],l.length])})});downloadCSV("archive-"+d+".csv",rows)}
-function renderAll(){renderOverall();renderCompany();renderAllRows();renderArchive();renderTry()}
+function renderAll(){renderCompanyOptions();renderOverall();renderCompany();renderAllRows();renderArchive();renderTry();renderCompanyManagement()}
 function showSection(id){document.querySelectorAll(".app-section").forEach(x=>x.classList.toggle("active",x.id===id));document.querySelectorAll("#sectionNav [data-section]").forEach(x=>x.classList.toggle("active",x.dataset.section===id));window.scrollTo({top:0,behavior:"smooth"})}
 const sectionNav=$("sectionNav");if(sectionNav)sectionNav.addEventListener("click",e=>{let b=e.target.closest("[data-section]");if(b)showSection(b.dataset.section)});
 function renderCompanyButtons(){let selected=$("company").value;$("companyButtons").innerHTML=COMPANIES.map(c=>`<button type="button" class="company-btn ${c===selected?"active":""}" data-pick-company="${esc(c)}">${esc(c)}</button>`).join("")}
@@ -123,5 +132,5 @@ $("addTry").onclick=addTry;$("tryAmount").onkeydown=e=>{if(e.key==="Enter")addTr
 $("amt1").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();if($("cur2").value)$("amt2").focus();else saveRecord()}};$("amt2").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();saveRecord()}};document.addEventListener("keydown",e=>{if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();saveRecord()}});
 function theme(){let d=localStorage.getItem(TK)==="dark";document.body.classList.toggle("dark",d);$("theme").textContent=d?"☀️ الوضع النهاري":"🌙 الوضع الليلي"}
 $("theme").onclick=()=>{localStorage.setItem(TK,document.body.classList.contains("dark")?"light":"dark");theme()};
-theme();renderCurrencyButtons();renderAll();
+$("addCompany").onclick=addCompany;$("newCompanyName").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addCompany()}};theme();renderCurrencyButtons();renderAll();
 </script></body></html>
