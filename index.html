@@ -102,8 +102,7 @@ function addTry(){let n=Number($("tryAmount").value);if(!Number.isFinite(n)||n<=
 function saveBatch(){let rate=Number($("tryRate").value);if(currentTry<=0||!Number.isFinite(rate)||rate<=0){alert("أدخل المجموع وسعر صرف صحيحاً");return}batches.push({id:id(),date:today(),totalTRY:currentTry,rate,totalSYP:currentTry*rate});currentTry=0;$("tryRate").value="";$("tryAmount").value="";persist();renderTry()}
 function deleteBatch(key){if(!confirm("حذف هذه الدفعة؟"))return;batches=batches.filter(b=>b.id!==key);persist();renderTry()}
 function csvCell(v){return '"'+String(v??"").replace(/"/g,'""')+'"'}
-function downloadCSV(name,rows){let blob=new Blob(["\uFEFF"+rows.map(r=>r.map(csvCell).join(",")).join("\r
-")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
+function downloadCSV(name,rows){let blob=new Blob(["\uFEFF"+rows.map(r=>r.map(csvCell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
 function exportRecords(list,name){downloadCSV(name,[["الشركة","التاريخ","الوقت","العملة الأولى","المبلغ الأول","العملة الثانية","المبلغ الثاني"],...list.map(r=>[r.company,r.date,r.time,r.currency1,r.amount1,r.currency2,r.amount2])])}
 function exportArchive(){let d=$("archiveDate").value;if(!d)return;let rows=[["التاريخ","الشركة","العملة","الإجمالي","عدد الحركات"]];COMPANIES.forEach(c=>{let l=records.filter(r=>r.date===d&&r.company===c);if(!l.length)return;let t=totals(l);CURRENCIES.forEach(x=>{if(t[x])rows.push([d,c,x,t[x],l.length])})});downloadCSV("archive-"+d+".csv",rows)}
 function renderAll(){renderOverall();renderCompany();renderAllRows();renderArchive();renderTry()}
