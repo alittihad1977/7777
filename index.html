@@ -20,8 +20,9 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:b
 </style></head>
 <body><div class="wrap">
 <header><h1>تجميع حوالات الشركات</h1><button class="gold" id="theme">🌙 الوضع الليلي</button></header>
+<nav class="section-nav" id="sectionNav" aria-label="التنقل بين الأقسام"><button type="button" class="active" data-section="entry">➕ إضافة حركة</button><button type="button" data-section="overall">📊 الملخص العام</button><button type="button" data-section="companyLog">📒 سجل الشركات</button><button type="button" data-section="archiveSection">🗓️ الأرشيف</button><button type="button" data-section="turkishSection">🇹🇷 مشتريات التركي</button><button type="button" data-section="allSection">🧾 جميع الحركات</button></nav>
 
-<section class="card">
+<section class="card app-section active" id="entry">
 <h2>⚡ إضافة حركة جديدة</h2>
 <div class="grid">
 <div><label>الشركة</label><select id="company" style="display:none"><option value="">اختر الشركة</option><option>الليث</option><option>اونلاين</option><option>تواصل</option><option>تاج</option><option>شمس</option><option>العالمية</option></select><div id="companyButtons" class="company-buttons"><button type="button" class="company-btn" data-pick-company="الليث">الليث</button><button type="button" class="company-btn" data-pick-company="اونلاين">اونلاين</button><button type="button" class="company-btn" data-pick-company="تواصل">تواصل</button><button type="button" class="company-btn" data-pick-company="تاج">تاج</button><button type="button" class="company-btn" data-pick-company="شمس">شمس</button><button type="button" class="company-btn" data-pick-company="العالمية">العالمية</button></div></div>
@@ -107,7 +108,7 @@ function exportRecords(list,name){downloadCSV(name,[["الشركة","التار�
 function exportArchive(){let d=$("archiveDate").value;if(!d)return;let rows=[["التاريخ","الشركة","العملة","الإجمالي","عدد الحركات"]];COMPANIES.forEach(c=>{let l=records.filter(r=>r.date===d&&r.company===c);if(!l.length)return;let t=totals(l);CURRENCIES.forEach(x=>{if(t[x])rows.push([d,c,x,t[x],l.length])})});downloadCSV("archive-"+d+".csv",rows)}
 function renderAll(){renderOverall();renderCompany();renderAllRows();renderArchive();renderTry()}
 function showSection(id){document.querySelectorAll(".app-section").forEach(x=>x.classList.toggle("active",x.id===id));document.querySelectorAll("#sectionNav [data-section]").forEach(x=>x.classList.toggle("active",x.dataset.section===id));window.scrollTo({top:0,behavior:"smooth"})}
-$("sectionNav").onclick=e=>{let b=e.target.closest("[data-section]");if(b)showSection(b.dataset.section)};
+const sectionNav=$("sectionNav");if(sectionNav)sectionNav.addEventListener("click",e=>{let b=e.target.closest("[data-section]");if(b)showSection(b.dataset.section)});
 function renderCompanyButtons(){let selected=$("company").value;$("companyButtons").innerHTML=COMPANIES.map(c=>`<button type="button" class="company-btn ${c===selected?"active":""}" data-pick-company="${esc(c)}">${esc(c)}</button>`).join("")}
 $("companyButtons").onclick=e=>{let b=e.target.closest("[data-pick-company]");if(!b)return;$("company").value=b.dataset.pickCompany;renderCompanyButtons();$("currency1Buttons").querySelector("button.active")?.focus()};
 function renderCurrencyButtons(){let c1=$("cur1").value,c2=$("cur2").value;$("currency1Buttons").innerHTML=CURRENCIES.map(c=>`<button type="button" class="currency-btn ${c===c1?"active":""}" data-pick-cur1="${esc(c)}">${esc(c)}</button>`).join("");$("currency2Buttons").innerHTML=[["","بدون عملة ثانية"],...CURRENCIES.map(c=>[c,c])].map(([v,n])=>`<button type="button" class="currency-btn ${v===c2?"active":""}" data-pick-cur2="${esc(v)}">${esc(n)}</button>`).join("")}
