@@ -85,7 +85,7 @@ if(editingId){let i=records.findIndex(r=>r.id===editingId);if(i>=0)records[i]={.
 else records.push({id:id(),...data,createdAt:Date.now()});
 persist();editingId=null;$("amt1").value="";$("amt2").value="";$("save").textContent="حفظ الحركة";$("editNote").textContent="";renderAll();$("amt1").focus()
 }
-function editRecord(key){let r=records.find(x=>x.id===key);if(!r)return;editingId=key;$("company").value=r.company;renderCompanyButtons();$("cur1").value=r.currency1;$("cur2").value=r.currency2||"";$("amt1").value=r.amount1;$("amt2").value=r.amount2||"";$("save").textContent="حفظ التعديل";$("editNote").textContent="أنت الآن تعدّل حركة مسجلة.";window.scrollTo({top:0,behavior:"smooth"})}
+function editRecord(key){let r=records.find(x=>x.id===key);if(!r)return;editingId=key;$("company").value=r.company;renderCompanyButtons();$("cur1").value=r.currency1;$("cur2").value=r.currency2||"";renderCurrencyButtons();$("amt1").value=r.amount1;$("amt2").value=r.amount2||"";$("save").textContent="حفظ التعديل";$("editNote").textContent="أنت الآن تعدّل حركة مسجلة.";window.scrollTo({top:0,behavior:"smooth"})}
 function deleteRecord(key){if(!confirm("هل تريد حذف هذه الحركة؟"))return;records=records.filter(r=>r.id!==key);if(editingId===key)clearForm();persist();renderAll()}
 function totals(list){let t={};CURRENCIES.forEach(c=>t[c]=0);list.forEach(r=>{if(t[r.currency1]!==undefined)t[r.currency1]+=Number(r.amount1||0);if(r.currency2&&t[r.currency2]!==undefined)t[r.currency2]+=Number(r.amount2||0)});return t}
 function totalsHTML(t){return '<div class="stats">'+CURRENCIES.map(c=>'<div class="stat">'+esc(c)+'<b>'+num(t[c])+'</b></div>').join("")+'</div>'}
