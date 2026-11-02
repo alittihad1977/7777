@@ -13,7 +13,7 @@ header{background:var(--navy);color:white;padding:18px;border-radius:14px;displa
 label{display:block;color:var(--muted);font-size:13px;margin:9px 0 6px}
 input,select{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--input);color:var(--fg);font:inherit}
 button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:bold}.primary{background:var(--navy);color:white}.gold{background:var(--gold);color:#172033}.danger{background:#c62828;color:white}.soft{background:#e7ebf2;color:#172033}.small{font-size:12px;padding:7px 9px}
-.actions,.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.company-buttons{display:flex;gap:7px;flex-wrap:wrap}.company-btn{background:var(--bg);color:var(--fg);border:1px solid var(--line);padding:10px 13px}.company-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}.tab{background:var(--card);border:1px solid var(--line);color:var(--fg);white-space:nowrap}.tab.active{background:var(--navy);color:white}
+.actions,.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.company-buttons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;width:100%}.company-btn{min-width:0;padding:12px 6px;font-size:14px;white-space:nowrap}@media(max-width:600px){.company-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}.company-btn{padding:12px 5px;font-size:14px}}.company-btn{background:var(--bg);color:var(--fg);border:1px solid var(--line);padding:10px 13px}.company-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}.tab{background:var(--card);border:1px solid var(--line);color:var(--fg);white-space:nowrap}.tab.active{background:var(--navy);color:white}
 .muted{color:var(--muted);font-size:12px}.stat{background:var(--bg);border-radius:9px;padding:12px}.stat b{display:block;margin-top:6px;font-size:17px}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:9px}
 .tablewrap{overflow-x:auto;margin-top:12px}table{width:100%;min-width:650px;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid var(--line);text-align:center;font-size:13px}th{background:var(--bg)}hr{border:0;border-top:1px solid var(--line);margin:16px 0}
 @media print{body{background:white;color:black;padding:0}header button,.no-print,.actions,.tabs{display:none!important}.card{break-inside:avoid;border:1px solid #bbb}table{min-width:0}th,td{font-size:10px;padding:5px}}
@@ -25,8 +25,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:b
 <h2>⚡ إضافة حركة جديدة</h2>
 <div class="grid">
 <div><label>الشركة</label><select id="company" style="display:none"><option value="">اختر الشركة</option><option>الليث</option><option>اونلاين</option><option>تواصل</option><option>تاج</option><option>شمس</option><option>العالمية</option></select><div id="companyButtons" class="company-buttons"><button type="button" class="company-btn" data-pick-company="الليث">الليث</button><button type="button" class="company-btn" data-pick-company="اونلاين">اونلاين</button><button type="button" class="company-btn" data-pick-company="تواصل">تواصل</button><button type="button" class="company-btn" data-pick-company="تاج">تاج</button><button type="button" class="company-btn" data-pick-company="شمس">شمس</button><button type="button" class="company-btn" data-pick-company="العالمية">العالمية</button></div></div>
-<div><label>التاريخ</label><input type="date" id="date"></div>
-<div><label>الوقت</label><input type="time" id="time"></div>
+
 </div><hr>
 <div class="amounts">
 <div><label>العملة الأولى</label><select id="cur1"><option value="">اختر العملة</option><option>ليرة سورية</option><option>ليرة تركية</option><option>دولار أمريكي</option><option>يورو</option></select><label>المبلغ الأول</label><input id="amt1" type="number" min="0" step="any" placeholder="0.00"></div>
@@ -74,19 +73,19 @@ const num=n=>Number(n||0).toLocaleString("en-US",{maximumFractionDigits:4});
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 function persist(){localStorage.setItem(RK,JSON.stringify(records));localStorage.setItem(BK,JSON.stringify(batches))}
-function clearForm(){editingId=null;$("company").value="";$("cur1").value="";$("cur2").value="";$("amt1").value="";$("amt2").value="";$("date").value=today();$("time").value=nowTime();$("save").textContent="حفظ الحركة";$("editNote").textContent="";renderCompanyButtons()}
+function clearForm(){editingId=null;$("company").value="";$("cur1").value="";$("cur2").value="";$("amt1").value="";$("amt2").value="";$("save").textContent="حفظ الحركة";$("editNote").textContent="";renderCompanyButtons()}
 function saveRecord(){
-let company=$("company").value,c1=$("cur1").value,c2=$("cur2").value,a1=Number($("amt1").value),a2=Number($("amt2").value||0),date=$("date").value,time=$("time").value;
+let company=$("company").value,c1=$("cur1").value,c2=$("cur2").value,a1=Number($("amt1").value),a2=Number($("amt2").value||0),oldRecord=editingId?records.find(r=>r.id===editingId):null,date=oldRecord?.date||today(),time=oldRecord?.time||nowTime();
 if(!COMPANIES.includes(company)){alert("اختر الشركة");return}
 if(!CURRENCIES.includes(c1)){alert("اختر العملة الأولى");return}
-if(!date||!time||!Number.isFinite(a1)||a1<=0){alert("أدخل التاريخ والوقت والمبلغ الأول بشكل صحيح");return}
+if(!Number.isFinite(a1)||a1<=0){alert("أدخل المبلغ الأول بشكل صحيح");return}
 if(c2){if(!CURRENCIES.includes(c2)||c2===c1||!Number.isFinite(a2)||a2<=0){alert("اختر عملة ثانية مختلفة وأدخل مبلغها");return}}else if(a2>0){alert("اختر العملة الثانية أو امسح مبلغها");return}
 let data={company,currency1:c1,amount1:a1,currency2:c2,amount2:c2?a2:0,date,time};
 if(editingId){let i=records.findIndex(r=>r.id===editingId);if(i>=0)records[i]={...records[i],...data}}
 else records.push({id:id(),...data,createdAt:Date.now()});
 persist();editingId=null;$("amt1").value="";$("amt2").value="";$("save").textContent="حفظ الحركة";$("editNote").textContent="";renderAll();$("amt1").focus()
 }
-function editRecord(key){let r=records.find(x=>x.id===key);if(!r)return;editingId=key;$("company").value=r.company;renderCompanyButtons();$("cur1").value=r.currency1;$("cur2").value=r.currency2||"";$("amt1").value=r.amount1;$("amt2").value=r.amount2||"";$("date").value=r.date;$("time").value=r.time;$("save").textContent="حفظ التعديل";$("editNote").textContent="أنت الآن تعدّل حركة مسجلة.";window.scrollTo({top:0,behavior:"smooth"})}
+function editRecord(key){let r=records.find(x=>x.id===key);if(!r)return;editingId=key;$("company").value=r.company;renderCompanyButtons();$("cur1").value=r.currency1;$("cur2").value=r.currency2||"";$("amt1").value=r.amount1;$("amt2").value=r.amount2||"";$("save").textContent="حفظ التعديل";$("editNote").textContent="أنت الآن تعدّل حركة مسجلة.";window.scrollTo({top:0,behavior:"smooth"})}
 function deleteRecord(key){if(!confirm("هل تريد حذف هذه الحركة؟"))return;records=records.filter(r=>r.id!==key);if(editingId===key)clearForm();persist();renderAll()}
 function totals(list){let t={};CURRENCIES.forEach(c=>t[c]=0);list.forEach(r=>{if(t[r.currency1]!==undefined)t[r.currency1]+=Number(r.amount1||0);if(r.currency2&&t[r.currency2]!==undefined)t[r.currency2]+=Number(r.amount2||0)});return t}
 function totalsHTML(t){return '<div class="stats">'+CURRENCIES.map(c=>'<div class="stat">'+esc(c)+'<b>'+num(t[c])+'</b></div>').join("")+'</div>'}
@@ -109,7 +108,7 @@ function exportRecords(list,name){downloadCSV(name,[["الشركة","التار�
 function exportArchive(){let d=$("archiveDate").value;if(!d)return;let rows=[["التاريخ","الشركة","العملة","الإجمالي","عدد الحركات"]];COMPANIES.forEach(c=>{let l=records.filter(r=>r.date===d&&r.company===c);if(!l.length)return;let t=totals(l);CURRENCIES.forEach(x=>{if(t[x])rows.push([d,c,x,t[x],l.length])})});downloadCSV("archive-"+d+".csv",rows)}
 function renderAll(){renderOverall();renderCompany();renderAllRows();renderArchive();renderTry()}
 function renderCompanyButtons(){let selected=$("company").value;$("companyButtons").innerHTML=COMPANIES.map(c=>`<button type="button" class="company-btn ${c===selected?"active":""}" data-pick-company="${esc(c)}">${esc(c)}</button>`).join("")}
-$("companyButtons").onclick=e=>{let b=e.target.closest("[data-pick-company]");if(!b)return;$("company").value=b.dataset.pickCompany;renderCompanyButtons();$("amt1").focus()};$("save").onclick=saveRecord;$("clear").onclick=clearForm;$("date").value=today();$("time").value=nowTime();renderCompanyButtons();
+$("companyButtons").onclick=e=>{let b=e.target.closest("[data-pick-company]");if(!b)return;$("company").value=b.dataset.pickCompany;renderCompanyButtons();$("amt1").focus()};$("save").onclick=saveRecord;$("clear").onclick=clearForm;renderCompanyButtons();
 $("tabs").onclick=e=>{let b=e.target.closest("[data-company]");if(b){activeCompany=b.dataset.company;renderCompany()}};
 ["from","to"].forEach(x=>$(x).onchange=renderCompany);["allDate","allCompany"].forEach(x=>$(x).onchange=renderAllRows);$("archiveDate").onchange=drawArchive;
 document.addEventListener("click",e=>{let x=e.target.closest("[data-edit]"),d=e.target.closest("[data-delete]"),b=e.target.closest("[data-batch-delete]");if(x)editRecord(x.dataset.edit);if(d)deleteRecord(d.dataset.delete);if(b)deleteBatch(b.dataset.batchDelete)});
