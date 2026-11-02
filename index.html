@@ -34,7 +34,7 @@ button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:b
 <div class="actions"><button class="primary" id="save">حفظ الحركة</button><button class="soft" id="clear">تفريغ الخانات</button></div><p class="muted" id="editNote"></p>
 </section>
 
-<section class="card app-section" id="overall"><h2>📊 الملخص العام حسب الشركة والعملة</h2><div id="overall" class="stats"></div></section>
+<section class="card app-section" id="overall"><h2>📊 الملخص العام حسب الشركة والعملة</h2><div id="overallStats" class="stats"></div></section>
 
 <section class="card app-section" id="companyLog"><h2>📒 سجل الشركات المستقلة</h2><div class="tabs" id="tabs"></div>
 <div class="grid"><div><label>من تاريخ</label><input type="date" id="from"></div><div><label>إلى تاريخ</label><input type="date" id="to"></div></div>
@@ -89,7 +89,7 @@ function editRecord(key){let r=records.find(x=>x.id===key);if(!r)return;showSect
 function deleteRecord(key){if(!confirm("هل تريد حذف هذه الحركة؟"))return;records=records.filter(r=>r.id!==key);if(editingId===key)clearForm();persist();renderAll()}
 function totals(list){let t={};CURRENCIES.forEach(c=>t[c]=0);list.forEach(r=>{if(t[r.currency1]!==undefined)t[r.currency1]+=Number(r.amount1||0);if(r.currency2&&t[r.currency2]!==undefined)t[r.currency2]+=Number(r.amount2||0)});return t}
 function totalsHTML(t){return '<div class="stats">'+CURRENCIES.map(c=>'<div class="stat">'+esc(c)+'<b>'+num(t[c])+'</b></div>').join("")+'</div>'}
-function renderOverall(){$("overall").innerHTML=COMPANIES.map(c=>{let l=records.filter(r=>r.company===c),t=totals(l);return '<div class="stat"><strong>'+esc(c)+'</strong><p class="muted">'+l.length+' حركة</p>'+CURRENCIES.map(x=>'<div style="margin-top:6px;font-size:13px">'+esc(x)+': <b>'+num(t[x])+'</b></div>').join("")+'</div>'}).join("")}
+function renderOverall(){$("overallStats").innerHTML=COMPANIES.map(c=>{let l=records.filter(r=>r.company===c),t=totals(l);return '<div class="stat"><strong>'+esc(c)+'</strong><p class="muted">'+l.length+' حركة</p>'+CURRENCIES.map(x=>'<div style="margin-top:6px;font-size:13px">'+esc(x)+': <b>'+num(t[x])+'</b></div>').join("")+'</div>'}).join("")}
 function renderTabs(){$("tabs").innerHTML=COMPANIES.map(c=>'<button class="tab '+(c===activeCompany?'active':'')+'" data-company="'+esc(c)+'">'+esc(c)+'</button>').join("")}
 function companyList(){let f=$("from").value,t=$("to").value;return records.filter(r=>r.company===activeCompany&&(!f||r.date>=f)&&(!t||r.date<=t)).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))}
 function buttons(r){return '<button class="small soft" data-edit="'+r.id+'">تعديل</button> <button class="small danger" data-delete="'+r.id+'">حذف</button>'}
