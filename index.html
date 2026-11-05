@@ -108,7 +108,7 @@ if(secondEnabled&&(!activeCurrencies().includes(c2)||c2===c1||!Number.isFinite(a
 let data={company,currency1:c1,amount1:a1,currency2:c2,amount2:c2?a2:0,date,time};
 if(editingId){let i=records.findIndex(r=>r.id===editingId);if(i>=0)records[i]={...records[i],...data}}
 else records.push({id:id(),...data,createdAt:Date.now()});
-persist();editingId=null;$("amt1").value="";$("amt2").value="";$("secondCurrencyEnabled").checked=false;$("secondCurrencyFields").hidden=true;$("cur2").value="";$("save").textContent="حفظ الحركة";$("editNote").textContent="";renderAll();$("amt1").focus()
+persist();editingId=null;$("amt1").value="";$("amt2").value="";$("save").textContent="حفظ الحركة";$("editNote").textContent="";renderAll();$("amt1").focus()
 }
 function editRecord(key){let r=records.find(x=>x.id===key);if(!r)return;showSection("entry");editingId=key;renderCompanyOptions(r.company);$("company").value=r.company;renderCompanyButtons();$("cur1").value=r.currency1;$("secondCurrencyEnabled").checked=!!r.currency2;$("secondCurrencyFields").hidden=!r.currency2;$("cur2").value=r.currency2||"";renderCurrencyButtons();$("amt1").value=r.amount1;$("amt2").value=r.amount2||"";$("save").textContent="حفظ التعديل";$("editNote").textContent="أنت الآن تعدّل حركة مسجلة.";window.scrollTo({top:0,behavior:"smooth"})}
 function deleteRecord(key){if(!confirm("هل تريد حذف هذه الحركة؟"))return;records=records.filter(r=>r.id!==key);if(editingId===key)clearForm();persist();renderAll()}
