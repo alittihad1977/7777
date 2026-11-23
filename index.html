@@ -86,7 +86,7 @@ const num=n=>Number(n||0).toLocaleString("en-US",{maximumFractionDigits:4});
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 function persist(){localStorage.setItem(RK,JSON.stringify(records));localStorage.setItem(BK,JSON.stringify(batches))}
-function ensureCompanyNumbers(){let changed=false;const originalOrder=new Map(records.map((r,i)=>[r,i]));const companies=[...new Set(records.map(r=>r.company))];for(const company of companies){const list=records.filter(r=>r.company===company).sort((a,b)=>(Number(a.createdAt)||0)-(Number(b.createdAt)||0)||originalOrder.get(a)-originalOrder.get(b));let next=list.reduce((m,r)=>Math.max(m,Number(r.companyNumber)||0),0);for(const r of list){if(!Number.isInteger(Number(r.companyNumber))||Number(r.companyNumber)<1){r.companyNumber=++next;changed=true}}}if(changed)persist()}
+function ensureCompanyNumbers(){let changed=false;const originalOrder=new Map(records.map((r,i)=>[r,i]));const groups=new Map();for(const r of records){const key=JSON.stringify([r.company,r.date]);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r)}for(const list of groups.values()){list.sort((a,b)=>(Number(a.createdAt)||0)-(Number(b.createdAt)||0)||originalOrder.get(a)-originalOrder.get(b));list.forEach((r,i)=>{const n=i+1;if(Number(r.companyNumber)!==n){r.companyNumber=n;changed=true}})}if(changed)persist()}
 ensureCompanyNumbers()
 function saveCompanies(){localStorage.setItem(CK,JSON.stringify(COMPANIES.filter(c=>!DEFAULT_COMPANIES.includes(c))));localStorage.setItem(RCK,JSON.stringify(DEFAULT_COMPANIES.filter(c=>!COMPANIES.includes(c))))}
 function saveCurrencies(){localStorage.setItem(CURK,JSON.stringify(CURRENCIES.filter(c=>!DEFAULT_CURRENCIES.includes(c))));localStorage.setItem(RUK,JSON.stringify(DEFAULT_CURRENCIES.filter(c=>!CURRENCIES.includes(c))))}
@@ -109,7 +109,7 @@ if(!Number.isFinite(a1)||a1<=0){alert("أدخل المبلغ الأول بشكل
 if(secondEnabled&&(!activeCurrencies().includes(c2)||c2===c1||!Number.isFinite(a2)||a2<=0)){alert("اختر عملة ثانية مختلفة وأدخل مبلغها");return}
 let data={company,currency1:c1,amount1:a1,currency2:c2,amount2:c2?a2:0,date,time};
 if(editingId){let i=records.findIndex(r=>r.id===editingId);if(i>=0)records[i]={...records[i],...data}}
-else {let companyNumber=records.filter(r=>r.company===company).reduce((m,r)=>Math.max(m,Number(r.companyNumber)||0),0)+1;records.push({id:id(),...data,createdAt:Date.now(),companyNumber})}
+else {let companyNumber=records.filter(r=>r.company===company&&r.date===date).reduce((m,r)=>Math.max(m,Number(r.companyNumber)||0),0)+1;records.push({id:id(),...data,createdAt:Date.now(),companyNumber})}
 persist();editingId=null;$("amt1").value="";$("amt2").value="";$("save").textContent="حفظ الحركة";$("editNote").textContent="";renderAll();$("amt1").focus()
 }
 function editRecord(key){let r=records.find(x=>x.id===key);if(!r)return;showSection("entry");editingId=key;renderCompanyOptions(r.company);$("company").value=r.company;renderCompanyButtons();$("cur1").value=r.currency1;$("secondCurrencyEnabled").checked=!!r.currency2;$("secondCurrencyFields").hidden=!r.currency2;$("cur2").value=r.currency2||"";renderCurrencyButtons();$("amt1").value=r.amount1;$("amt2").value=r.amount2||"";$("save").textContent="حفظ التعديل";$("editNote").textContent="أنت الآن تعدّل حركة مسجلة.";window.scrollTo({top:0,behavior:"smooth"})}
